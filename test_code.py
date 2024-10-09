@@ -116,17 +116,14 @@ def assign_data_with_dominating_and_other_classes(train_dataset, clients_data, d
         dominant_size = int(len(indices) * dominant_ratio)
         other_size = len(indices) - dominant_size
 
-        # 지배적인 클래스 데이터와 나머지 데이터를 분리
         dominant_indices = indices[:dominant_size]
         other_indices = indices[dominant_size:]
 
-        # 무작위로 다른 그룹의 데이터 가져오기
         other_group_indices = []
         for i, idx in enumerate(other_indices):
-            other_target = (train_dataset[idx][1] + np.random.randint(1, 62)) % 62  # 다른 클래스 가져오기
+            other_target = (train_dataset[idx][1] + np.random.randint(1, 62)) % 62  
             other_group_indices.append(other_target)
 
-        # train과 test로 분리
         train_indices, test_indices = random_split(indices, [len(indices) - test_size_per_client, test_size_per_client])
         client_train_datasets.append(Subset(train_dataset, train_indices))
         client_test_datasets.append(Subset(train_dataset, test_indices))
