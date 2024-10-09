@@ -202,10 +202,10 @@ for iteration in range(num_iterations):
     
     print(f"Iteration {iteration}: After Local Update - Avg Test Accuracy (FedAMP) = {avg_accuracy_amp:.2f}%, (FedAvg) = {avg_accuracy_avg:.2f}%")
     
-    amp_model_state = aggregate_models_amp(clients_models_avg, alpha, sigma)
+    amp_model_state = aggregate_models_amp(clients_models_amp, alpha, sigma)
     for i in range(num_clients):
         print(i, end=' ')
-        cloud_models_amp[i].load_state_dict(amp_model_state[i].state_dict())
+        cloud_models_amp[i].load_state_dict(amp_model_state[i])
     print("")
     avg_model_state = aggregate_models_avg(clients_models_avg)
     for i in range(num_clients):
