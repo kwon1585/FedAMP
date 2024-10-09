@@ -33,7 +33,17 @@ def aggregate_models_amp(clients, alpha, sigma):
                 total_weight += weight
         new_model = (1 - alpha * total_weight) * wi + alpha * weighted_sum
         new_models.append(new_model)
-    return new_models
+        
+    new_model_states = []
+    for model_params in new_models:
+        model_state = {}  
+        start = 0
+        for name, param in clients[0].named_parameters():
+            num_params = param.numel()
+            model_state[name] = torch.tensor(model_params[start:start + num_params]).reshape(param.shape)
+            start += num_params
+        new_model_states.append(model_state)
+    return new_model_states
 
 def aggregate_models_avg(clients):
     avg_model = clients[0].state_dict()
