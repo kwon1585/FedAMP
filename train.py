@@ -179,70 +179,101 @@ def evaluate(model, dataloader, criterion):
 all_accuracies_amp = []
 all_accuracies_avg = []
 
-print("Start training")
+# FedAMP 학습
+print("Start FedAMP training")
 
 for iteration in range(num_iterations):
     print("Iteration", iteration)
     
+    # Local Update (FedAMP)
     for i in range(num_clients):
         print(i, end=' ')
         local_update(clients_models_amp[i], cloud_models_amp[i], clients_optimizers_amp[i], clients_criterion, client_dataloaders[i], alpha, lambda_param)
     print("")
     
-    for i in range(num_clients):
-        print(i, end=' ')
-        local_update(clients_models_avg[i], None, clients_optimizers_avg[i], clients_criterion, client_dataloaders[i])
-    print("")
-    
+    # 평가 (FedAMP)
     accuracies_amp = []
-    accuracies_avg = []
-
     for i in range(num_clients):
         print(i, end=' ')
         _, accuracy_amp = evaluate(clients_models_amp[i], client_test_dataloaders[i], clients_criterion)
-        _, accuracy_avg = evaluate(clients_models_avg[i], client_test_dataloaders[i], clients_criterion)
         accuracies_amp.append(accuracy_amp)
-        accuracies_avg.append(accuracy_avg)
     print("")
     
     avg_accuracy_amp = sum(accuracies_amp) / num_clients
-    avg_accuracy_avg = sum(accuracies_avg) / num_clients
     all_accuracies_amp.append(avg_accuracy_amp)
-    all_accuracies_avg.append(avg_accuracy_avg)
     
-    print(f"Iteration {iteration}: After Local Update - Avg Test Accuracy (FedAMP) = {avg_accuracy_amp:.2f}%, (FedAvg) = {avg_accuracy_avg:.2f}%")
+    print(f"Iteration {iteration}: After Local Update (FedAMP) - Avg Test Accuracy = {avg_accuracy_amp:.2f}%")
     
+    # Cloud Update (FedAMP)
     amp_model_state = aggregate_models_amp(clients_models_amp, alpha, sigma)
     for i in range(num_clients):
         print(i, end=' ')
         cloud_models_amp[i].load_state_dict(amp_model_state[i])
     print("")
-    avg_model_state = aggregate_models_avg(clients_models_avg)
-    for i in range(num_clients):
-        print(i, end=' ')
-        clients_models_avg[i].load_state_dict(avg_model_state)
-    print("")
-    accuracies_amp = []
-    accuracies_avg = []
+    
+    # # 평가 (FedAMP) - Cloud Update 후
+    # accuracies_amp = []
+    # for i in range(num_clients):
+    #     print(i, end=' ')
+    #     _, accuracy_amp = evaluate(clients_models_amp[i], client_test_dataloaders[i], clients_criterion)
+    #     accuracies_amp.append(accuracy_amp)
+    # print("")
+    
+    # avg_accuracy_amp = sum(accuracies_amp) / num_clients
+    # all_accuracies_amp.append(avg_accuracy_amp)
+    
+    # print(f"Iteration {iteration}: After Cloud Update (FedAMP) - Avg Test Accuracy = {avg_accuracy_amp:.2f}%")
 
+# FedAvg 학습
+print("Start FedAvg training")
+
+for iteration in range(num_iterations):
+    print("Iteration", iteration)
+    
+    # Local Update (FedAvg)
     for i in range(num_clients):
         print(i, end=' ')
-        _, accuracy_amp = evaluate(clients_models_amp[i], client_test_dataloaders[i], clients_criterion)
+        local_update(clients_models_avg[i], None, clients_optimizers_avg[i], clients_criterion, client_dataloaders[i])
+    print("")
+    
+    # 평가 (FedAvg)
+    accuracies_avg = []
+    for i in range(num_clients):
+        print(i, end=' ')
         _, accuracy_avg = evaluate(clients_models_avg[i], client_test_dataloaders[i], clients_criterion)
-        accuracies_amp.append(accuracy_amp)
         accuracies_avg.append(accuracy_avg)
     print("")
-    avg_accuracy_amp = sum(accuracies_amp) / num_clients
+    
     avg_accuracy_avg = sum(accuracies_avg) / num_clients
-    all_accuracies_amp.append(avg_accuracy_amp)
     all_accuracies_avg.append(avg_accuracy_avg)
+    
+    print(f"Iteration {iteration}: After Local Update (FedAvg) - Avg Test Accuracy = {avg_accuracy_avg:.2f}%")
+    
+    # # Cloud Update (FedAvg)
+    # avg_model_state = aggregate_models_avg(clients_models_avg)
+    # for i in range(num_clients):
+    #     print(i, end=' ')
+    #     clients_models_avg[i].load_state_dict(avg_model_state)
+    # print("")
+    
+    # # 평가 (FedAvg) - Cloud Update 후
+    # accuracies_avg = []
+    # for i in range(num_clients):
+    #     print(i, end=' ')
+    #     _, accuracy_avg = evaluate(clients_models_avg[i], client_test_dataloaders[i], clients_criterion)
+    #     accuracies_avg.append(accuracy_avg)
+    # print("")
+    
+    # avg_accuracy_avg = sum(accuracies_avg) / num_clients
+    # all_accuracies_avg.append(avg_accuracy_avg)
+    
+    # print(f"Iteration {iteration}: After Cloud Update (FedAvg) - Avg Test Accuracy = {avg_accuracy_avg:.2f}%")
 
-    print(f"Iteration {iteration}: After Cloud Update - Avg Test Accuracy (FedAMP) = {avg_accuracy_amp:.2f}%, (FedAvg) = {avg_accuracy_avg:.2f}%")
 
-print("Avg accuracy over all iterations (FedAMP vs FedAvg):")
-for idx in range(num_iterations):
-    print(f"Iteration {idx}, After Local Update: FedAMP = {all_accuracies_amp[2*idx]:.2f}%, FedAvg = {all_accuracies_avg[2*idx]:.2f}%")
-    print(f"Iteration {idx}, After Cloud Update: FedAMP = {all_accuracies_amp[2*idx+1]:.2f}%, FedAvg = {all_accuracies_avg[2*idx+1]:.2f}%")
+# print("Avg accuracy over all iterations (FedAMP vs FedAvg):")
+# for idx in range(num_iterations):
+#     print(f"Iteration {idx}, After Local Update: FedAMP = {all_accuracies_amp[2*idx]:.2f}%, FedAvg = {all_accuracies_avg[2*idx]:.2f}%")
+#     print(f"Iteration {idx}, After Cloud Update: FedAMP = {all_accuracies_amp[2*idx+1]:.2f}%, FedAvg = {all_accuracies_avg[2*idx+1]:.2f}%")
 
 import pickle
 
