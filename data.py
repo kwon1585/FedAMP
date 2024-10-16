@@ -23,7 +23,7 @@ def create_client_datasets(train_dataset, num_clients, test_size_per_client):
 
     return clients_data, digit_indices, upper_indices, lower_indices
 
-def assign_data_with_dominating_and_other_classes(train_dataset, clients_data, digit_indices, upper_indices, lower_indices, dominant_ratio=0.8, test_size_per_client=100):
+def assign_data_with_dominating_and_other_classes(train_dataset, clients_data, digit_indices, upper_indices, lower_indices, dominant_ratio=0.7, test_size_per_client=100):
     client_train_datasets = []
     client_test_datasets = []
 

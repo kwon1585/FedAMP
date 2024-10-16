@@ -8,7 +8,7 @@ from utils.fedamp import aggregate_models_amp, aggregate_models_avg
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 num_clients = 62
-num_iterations = 10
+num_iterations = 15
 alpha = 0.1
 lambda_param = 0.5
 sigma = 1.0

@@ -6,8 +6,8 @@ class SimpleCNN(nn.Module):
         super(SimpleCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(64 * 14 * 14, 128)
-        self.fc2 = nn.Linear(128, 62)
+        self.fc1 = nn.Linear(64 * 14 * 14, 512)
+        self.fc2 = nn.Linear(512, 62)
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
