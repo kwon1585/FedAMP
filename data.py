@@ -3,6 +3,16 @@ import numpy as np
 from torch.utils.data import DataLoader, Subset, random_split
 from torchvision import datasets, transforms
 
+import pickle
+
+def save_client_datasets(client_train_datasets, client_test_datasets, filename="./data/client_datasets.pkl"):
+    data_to_save = {
+        'train_indices': [dataset.indices for dataset in client_train_datasets],
+        'test_indices': [dataset.indices for dataset in client_test_datasets]
+    }
+    with open(filename, 'wb') as f:
+        pickle.dump(data_to_save, f)
+
 def create_client_datasets(train_dataset, num_clients, test_size_per_client):
     clients_data = [[] for _ in range(num_clients)]
     digit_clients = list(range(10))
@@ -58,6 +68,20 @@ def create_dataloaders(train_dataset, num_clients, test_size_per_client, batch_s
     client_dataloaders = [DataLoader(client_train_datasets[i], batch_size=batch_size, shuffle=True) for i in range(num_clients)]
     client_test_dataloaders = [DataLoader(client_test_datasets[i], batch_size=batch_size, shuffle=False) for i in range(num_clients)]
 
+    save_client_datasets(client_dataloaders, client_test_dataloaders)
+
+    return client_dataloaders, client_test_dataloaders
+
+def load_client_datasets(train_dataset, filename="./data/client_datasets.pkl", batch_size=32):
+    with open(filename, 'rb') as f:
+        loaded_data = pickle.load(f)
+    
+    client_train_datasets = [Subset(train_dataset, indices) for indices in loaded_data['train_indices']]
+    client_test_datasets = [Subset(train_dataset, indices) for indices in loaded_data['test_indices']]
+    
+    client_dataloaders = [DataLoader(dataset, batch_size=batch_size, shuffle=True) for dataset in client_train_datasets]
+    client_test_dataloaders = [DataLoader(dataset, batch_size=batch_size, shuffle=False) for dataset in client_test_datasets]
+    
     return client_dataloaders, client_test_dataloaders
 
 def load_dataset():

@@ -1,8 +1,9 @@
+import os
 import torch
 import torch.optim as optim
 import numpy as np
 from model import SimpleCNN
-from data import load_dataset, create_dataloaders
+from data import load_dataset, create_dataloaders, load_client_datasets
 from train import local_update, evaluate
 from utils.fedamp import aggregate_models_amp, aggregate_models_avg
 
@@ -19,7 +20,9 @@ test_size_per_client = 100
 train_dataset, test_dataset = load_dataset()
 
 # Create dataloaders
-client_dataloaders, client_test_dataloaders = create_dataloaders(train_dataset, num_clients, test_size_per_client, batch_size)
+if os.path.exists("./data/client_datasets.pkl"):
+    client_dataloaders, client_test_dataloaders = load_client_datasets(train_dataset, batch_size=batch_size)
+else : client_dataloaders, client_test_dataloaders = create_dataloaders(train_dataset, num_clients, test_size_per_client, batch_size)
 
 # Initialize models, optimizers, and loss function
 clients_models_amp = [SimpleCNN().to(device) for _ in range(num_clients)]
